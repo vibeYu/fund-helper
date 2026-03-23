@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基金估值助手</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js"></script>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <nav class="top-nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand">基金估值助手</a>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/docs">策略文档</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>基金估值助手</h1>
+            <p class="update-time">更新时间：<span id="update-time">{{ update_time }}</span></p>
+            <p class="auto-refresh">每 {{ refresh_interval }} 秒自动刷新</p>
+        </header>
+
+        <!-- 大盘指数栏 -->
+        <div id="index-bar" class="index-bar"></div>
+
+        <!-- 涨跌排行 + 资金流向 并列 -->
+        <div class="home-row">
+            <div class="home-col">
+                <div class="sector-ranking">
+                    <div class="sector-col">
+                        <h3 class="sector-col-title rise">涨幅榜</h3>
+                        <div id="sector-top" class="sector-list"></div>
+                    </div>
+                    <div class="sector-col">
+                        <h3 class="sector-col-title drop">跌幅榜</h3>
+                        <div id="sector-bottom" class="sector-list"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="home-col">
+                <div class="sector-ranking">
+                    <div class="sector-col">
+                        <h3 class="sector-col-title rise">资金流入榜</h3>
+                        <div id="flow-inflow" class="sector-list"></div>
+                    </div>
+                    <div class="sector-col">
+                        <h3 class="sector-col-title drop">资金流出榜</h3>
+                        <div id="flow-outflow" class="sector-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 行业热力图 -->
+        <div class="heatmap-section">
+            <h3 class="section-title">行业热力图</h3>
+            <div id="heatmap-container"></div>
+        </div>
+
+        <!-- 热门概念词云 -->
+        <div class="wordcloud-section">
+            <h3 class="section-title">热门概念</h3>
+            <div id="wordcloud-container"></div>
+        </div>
+
+        <footer>
+            <p>数据仅供参考，不构成投资建议</p>
+        </footer>
+    </div>
+
+    <!-- 指数详情弹窗 -->
+    <div id="index-detail-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeIndexModal()">
+        <div class="modal-content detail-modal-content">
+            <div class="modal-header">
+                <h3><span id="idx-detail-name"></span></h3>
+                <button class="modal-close" onclick="closeIndexModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-summary">
+                    <span id="idx-detail-pct" class="detail-pct">--</span>
+                    <span class="detail-nav-info">点位 <span id="idx-detail-value">--</span></span>
+                </div>
+                <div class="chart-tabs">
+                    <div class="chart-tab active" data-period="intraday" onclick="switchIdxTab('intraday')">分时</div>
+                    <div class="chart-tab" data-period="30" onclick="switchIdxTab('30')">近1月</div>
+                    <div class="chart-tab" data-period="90" onclick="switchIdxTab('90')">近3月</div>
+                    <div class="chart-tab" data-period="180" onclick="switchIdxTab('180')">近6月</div>
+                </div>
+                <div id="idx-chart-container" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const refreshInterval = {{ refresh_interval }} * 1000;
+
+        let idxChart = null;
+        let wcChart = null;
+        let hmChart = null;
+        let currentIdxCode = null;
+        let currentIdxTab = 'intraday';
+        let idxChartCache = {};
+
+        function refreshData() {
+            Promise.all([
+                fetch('/api/market/indices').then(r => r.json()),
+                fetch('/api/market/sectors').then(r => r.json()),
+                fetch('/api/market/fund-flow').then(r => r.json()),
+                fetch('/api/market/hot-concepts').then(r => r.json()),
+                fetch('/api/market/heatmap').then(r => r.json()),
+            ])
+            .then(([idxResp, secResp, flowResp, wcResp, hmResp]) => {
+                if (idxResp.code === 0) updateIndexBar(idxResp.data);
+                if (secResp.code === 0) updateSectorRanking(secResp.data);
+                if (flowResp.code === 0) updateFundFlow(flowResp.data);
+                if (wcResp.code === 0) updateWordCloud(wcResp.data);
+                if (hmResp.code === 0) updateHeatmap(hmResp.data);
+                document.getElementById('update-time').textContent =
+                    new Date().toLocaleString('zh-CN', {hour12: false});
+            })
+            .catch(err => console.error('刷新失败:', err));
+        }
+
+        function renderSectorItem(s) {
+            const pct = s.change_pct;
+            const pctClass = pct > 0 ? 'rise' : (pct < 0 ? 'drop' : '');
+            const pctStr = pct === null ? '--' : (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+            return `<div class="sector-item"><span class="sector-name">${s.sector_name}</span><span class="sector-pct ${pctClass}">${pctStr}</span></div>`;
+        }
+
+        function updateSectorRanking(sectors) {
+            if (!sectors) return;
+            document.getElementById('sector-top').innerHTML = (sectors.top || []).map(renderSectorItem).join('');
+            document.getElementById('sector-bottom').innerHTML = (sectors.bottom || []).map(renderSectorItem).join('');
+        }
+
+        function formatFlow(val) {
+            const abs = Math.abs(val);
+            if (abs >= 1e8) return (val / 1e8).toFixed(2) + '亿';
+            if (abs >= 1e4) return (val / 1e4).toFixed(0) + '万';
+            return val.toFixed(0);
+        }
+
+        function renderFlowItem(s) {
+            const flow = s.net_inflow;
+            const flowClass = flow > 0 ? 'rise' : (flow < 0 ? 'drop' : '');
+            const flowStr = (flow >= 0 ? '+' : '') + formatFlow(flow);
+            const pct = s.change_pct;
+            const pctClass = pct > 0 ? 'rise' : (pct < 0 ? 'drop' : '');
+            const pctStr = pct === null ? '--' : (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+            return `<div class="flow-item"><span class="flow-name">${s.sector_name}</span><span class="flow-amount ${flowClass}">${flowStr}</span><span class="flow-pct ${pctClass}">${pctStr}</span></div>`;
+        }
+
+        function updateFundFlow(data) {
+            if (!data) return;
+            document.getElementById('flow-inflow').innerHTML = (data.inflow || []).map(renderFlowItem).join('');
+            document.getElementById('flow-outflow').innerHTML = (data.outflow || []).map(renderFlowItem).join('');
+        }
+
+        function updateHeatmap(industries) {
+            if (!industries || industries.length === 0) return;
+            const container = document.getElementById('heatmap-container');
+            if (!hmChart) hmChart = echarts.init(container, 'dark');
+            const data = industries.map(ind => ({
+                name: ind.name,
+                children: ind.children.map(s => {
+                    const pctStr = (s.change_pct >= 0 ? '+' : '') + s.change_pct.toFixed(2) + '%';
+                    return { name: s.name, value: s.value, change_pct: s.change_pct, itemStyle: { color: getHeatmapColor(s.change_pct) }, label: { formatter: s.name + '\n' + pctStr } };
+                })
+            }));
+            hmChart.setOption({
+                backgroundColor: '#1a1a1a',
+                tooltip: { formatter: function(p) { if (!p.data || p.data.change_pct === undefined) return p.name; const pct = p.data.change_pct; const pctStr = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%'; const cap = (p.data.value / 1e8).toFixed(0); return p.data.name + '<br/>涨跌幅: ' + pctStr + '<br/>市值: ' + cap + '亿'; } },
+                series: [{ type: 'treemap', width: '100%', height: '100%', roam: false, nodeClick: false, breadcrumb: { show: false }, squareRatio: 0.56, levels: [{ itemStyle: { borderColor: '#555', borderWidth: 2, gapWidth: 2 }, upperLabel: { show: true, height: 20, fontSize: 12, color: '#ccc', backgroundColor: 'rgba(0,0,0,0.6)', padding: [2, 6], borderRadius: 2 } }, { itemStyle: { borderColor: 'rgba(0,0,0,0.3)', borderWidth: 1, gapWidth: 1 }, label: { show: true, fontSize: 10, color: '#fff', fontWeight: 'bold', lineHeight: 14, overflow: 'truncate', ellipsis: '' } }], data: data }]
+            });
+        }
+
+        function getHeatmapColor(pct) {
+            if (pct >= 9.5) return '#AA0000';
+            if (pct > 4) return '#BB1111';
+            if (pct > 2) return '#CC2222';
+            if (pct > 1) return '#C84040';
+            if (pct > 0) return '#A05050';
+            if (pct === 0) return '#444';
+            if (pct > -1) return '#508060';
+            if (pct > -2) return '#409050';
+            if (pct > -4) return '#228822';
+            if (pct > -9.5) return '#118811';
+            return '#008800';
+        }
+
+        function updateWordCloud(words) {
+            if (!words || words.length === 0) return;
+            const container = document.getElementById('wordcloud-container');
+            if (!wcChart) wcChart = echarts.init(container);
+            const maxCount = words[0].count;
+            const wcData = words.map(w => ({ name: w.word, value: w.count, textStyle: { color: getWordColor(w.count, maxCount) } }));
+            wcChart.setOption({
+                tooltip: { show: true, formatter: function(p) { return p.name + ': ' + p.value + '次'; } },
+                series: [{ type: 'wordCloud', shape: 'circle', left: 'center', top: 'center', width: '90%', height: '90%', sizeRange: [14, 42], rotationRange: [-30, 30], rotationStep: 15, gridSize: 10, drawOutOfBound: false, textStyle: { fontFamily: 'sans-serif', fontWeight: 'bold' }, emphasis: { textStyle: { shadowBlur: 6, shadowColor: 'rgba(0,0,0,0.3)' } }, data: wcData }]
+            });
+        }
+
+        function getWordColor(count, maxCount) {
+            const ratio = count / maxCount;
+            if (ratio > 0.7) return '#C85A5A';
+            if (ratio > 0.4) return '#D4915E';
+            if (ratio > 0.2) return '#8FA0B3';
+            return '#5A9E6E';
+        }
+
+        function updateIndexBar(indices) {
+            const bar = document.getElementById('index-bar');
+            bar.innerHTML = '';
+            indices.forEach(idx => {
+                const pct = idx.change_pct;
+                const pctClass = pct === null ? '' : (pct > 0 ? 'rise' : (pct < 0 ? 'drop' : ''));
+                const pctStr = pct === null ? '--' : (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+                const valStr = idx.current_value === null ? '--' : idx.current_value.toFixed(2);
+                const card = document.createElement('div');
+                card.className = 'index-card';
+                card.style.cursor = 'pointer';
+                card.onclick = () => openIndexModal(idx.index_code, idx.index_name, pct, idx.current_value);
+                card.innerHTML = `<div class="index-name">${idx.index_name}</div><div class="index-value ${pctClass}">${valStr}</div><div class="index-pct ${pctClass}">${pctStr}</div>`;
+                bar.appendChild(card);
+            });
+        }
+
+        function openIndexModal(code, name, pct, value) {
+            currentIdxCode = code;
+            idxChartCache = {};
+            currentIdxTab = 'intraday';
+            document.getElementById('idx-detail-name').textContent = name;
+            document.getElementById('idx-detail-value').textContent = value === null ? '--' : value.toFixed(2);
+            const pctEl = document.getElementById('idx-detail-pct');
+            if (pct !== null && pct !== undefined) {
+                pctEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+                pctEl.className = 'detail-pct ' + (pct > 0 ? 'rise' : (pct < 0 ? 'drop' : ''));
+            } else { pctEl.textContent = '--'; pctEl.className = 'detail-pct'; }
+            document.querySelectorAll('#index-detail-modal .chart-tab').forEach(tab => { tab.classList.toggle('active', tab.dataset.period === 'intraday'); });
+            const container = document.getElementById('idx-chart-container');
+            if (!idxChart) idxChart = echarts.init(container); else idxChart.clear();
+            document.getElementById('index-detail-modal').style.display = 'flex';
+            idxChart.resize();
+            loadIdxChartData('intraday');
+        }
+
+        function closeIndexModal() {
+            document.getElementById('index-detail-modal').style.display = 'none';
+            currentIdxCode = null;
+            if (idxChart) idxChart.clear();
+        }
+
+        function switchIdxTab(period) {
+            if (currentIdxTab === period) return;
+            currentIdxTab = period;
+            document.querySelectorAll('#index-detail-modal .chart-tab').forEach(tab => { tab.classList.toggle('active', tab.dataset.period === period); });
+            loadIdxChartData(period);
+        }
+
+        function loadIdxChartData(period) {
+            if (!currentIdxCode) return;
+            const cacheKey = currentIdxCode + '_' + period;
+            if (idxChartCache[cacheKey]) { renderIdxChart(period, idxChartCache[cacheKey]); return; }
+            if (idxChart) idxChart.showLoading({ text: '加载中...', color: '#8FA0B3' });
+            const url = period === 'intraday' ? '/api/market/index/' + currentIdxCode + '/intraday' : '/api/market/index/' + currentIdxCode + '/history?days=' + period;
+            fetch(url).then(r => r.json()).then(resp => {
+                if (idxChart) idxChart.hideLoading();
+                if (resp.code === 0) { idxChartCache[cacheKey] = resp.data; if (currentIdxTab === period) renderIdxChart(period, resp.data); }
+            }).catch(() => { if (idxChart) idxChart.hideLoading(); });
+        }
+
+        function renderIdxChart(period, data) {
+            if (!idxChart) return;
+            idxChart.clear();
+            if (!data || data.length === 0) { idxChart.setOption({ graphic: { type: 'text', left: 'center', top: 'middle', style: { text: '暂无数据', fontSize: 14, fill: '#9A9DA0' } } }); return; }
+            if (period === 'intraday') {
+                idxChart.setOption({
+                    grid: { left: 50, right: 20, top: 20, bottom: 30 },
+                    xAxis: { type: 'category', data: data.map(d => d.time), axisLabel: { fontSize: 11, color: '#9A9DA0' }, axisLine: { lineStyle: { color: 'rgba(143,160,179,0.2)' } } },
+                    yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 11, color: '#9A9DA0', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(143,160,179,0.1)' } } },
+                    tooltip: { trigger: 'axis', formatter: p => p[0].name + '<br/>涨跌幅: ' + (p[0].value >= 0 ? '+' : '') + (p[0].value || 0).toFixed(2) + '%' },
+                    series: [{ type: 'line', data: data.map(d => d.change_pct), smooth: true, symbol: 'none', lineStyle: { color: '#8FA0B3', width: 2 }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(143,160,179,0.25)' }, { offset: 1, color: 'rgba(143,160,179,0.02)' }] } } }]
+                });
+            } else {
+                idxChart.setOption({
+                    grid: { left: 60, right: 20, top: 20, bottom: 30 },
+                    xAxis: { type: 'category', data: data.map(d => d.trade_date), axisLabel: { fontSize: 11, color: '#9A9DA0', rotate: 30 }, axisLine: { lineStyle: { color: 'rgba(143,160,179,0.2)' } } },
+                    yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 11, color: '#9A9DA0' }, splitLine: { lineStyle: { color: 'rgba(143,160,179,0.1)' } } },
+                    tooltip: { trigger: 'axis', formatter: p => p[0].name + '<br/>点位: ' + (p[0].value || 0).toFixed(2) },
+                    series: [{ type: 'line', data: data.map(d => d.close_value), smooth: true, symbol: 'none', lineStyle: { color: '#A3B18A', width: 2 }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(163,177,138,0.25)' }, { offset: 1, color: 'rgba(163,177,138,0.02)' }] } } }]
+                });
+            }
+        }
+
+        window.addEventListener('resize', function() {
+            if (idxChart && document.getElementById('index-detail-modal').style.display !== 'none') idxChart.resize();
+            if (wcChart) wcChart.resize();
+            if (hmChart) hmChart.resize();
+        });
+
+        setInterval(refreshData, refreshInterval);
+        refreshData();
+    </script>
+</body>
+</html>

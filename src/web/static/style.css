@@ -1,0 +1,2351 @@
+/* 投资帮帮看板样式 — 莫兰迪·静谧（Morandi Serenity） */
+/*
+ * 色彩体系：
+ *   背景 燕麦灰  #E3DCD2  60%
+ *   主色 雾霾蓝  #8FA0B3  30%
+ *   辅助 灰豆绿  #A3B18A  10%
+ *   文字 深碳灰  #4A4E51
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei",
+                 sans-serif;
+    background: #E3DCD2;
+    color: #4A4E51;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* === 背景装饰光斑 === */
+.bg-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.bg-glow::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(143, 160, 179, 0.18) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: glowFloat1 8s ease-in-out infinite;
+}
+
+.bg-glow::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(163, 177, 138, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: glowFloat2 10s ease-in-out infinite;
+}
+
+@keyframes glowFloat1 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(60px, 40px); }
+}
+
+@keyframes glowFloat2 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-50px, -30px); }
+}
+
+/* === 通用容器 === */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #3A3D40;
+    margin-bottom: 8px;
+}
+
+.update-time {
+    font-size: 14px;
+    color: #7A7E82;
+}
+
+/* 刷新按钮 */
+.btn-refresh {
+    background: none;
+    border: 1px solid rgba(143, 160, 179, 0.4);
+    color: #8FA0B3;
+    font-size: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-left: 6px;
+    transition: all 0.3s;
+    line-height: 1;
+    padding: 0;
+}
+
+.btn-refresh:hover {
+    background: rgba(143, 160, 179, 0.15);
+    color: #5E6266;
+    transform: rotate(180deg);
+}
+
+.auto-refresh {
+    font-size: 12px;
+    color: #9A9DA0;
+    margin-top: 4px;
+}
+
+/* === PC 端表格 === */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(143, 160, 179, 0.18);
+    box-shadow: 0 4px 20px rgba(74, 78, 81, 0.06);
+}
+
+thead {
+    background: rgba(143, 160, 179, 0.1);
+}
+
+th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 13px;
+    color: #7A7E82;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+td {
+    padding: 14px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.1);
+    color: #4A4E51;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover {
+    background-color: rgba(143, 160, 179, 0.08);
+}
+
+.fund-name {
+    font-weight: 500;
+    color: #3A3D40;
+}
+
+.fund-code {
+    color: #9A9DA0;
+    font-family: monospace;
+}
+
+/* 基金类型标签 */
+.fund-type-tag {
+    display: inline-block;
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 6px;
+    margin-left: 6px;
+    border-radius: 4px;
+    background: rgba(143, 160, 179, 0.15);
+    color: #7A7E82;
+    border: 1px solid rgba(143, 160, 179, 0.25);
+    vertical-align: middle;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+/* 涨跌颜色（莫兰迪灰调） */
+.pct, .card-pct {
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.pct {
+    font-size: 15px;
+}
+
+.rise {
+    color: #BF7B6F;
+}
+
+.drop {
+    color: #6B9E7A;
+}
+
+.source {
+    font-size: 12px;
+    color: #9A9DA0;
+}
+
+.no-data {
+    text-align: center;
+    color: #9A9DA0;
+    padding: 40px 16px;
+}
+
+/* === 移动端卡片 === */
+.fund-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(143, 160, 179, 0.18);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(74, 78, 81, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeInUp 0.4s ease both;
+}
+
+.fund-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 24px rgba(74, 78, 81, 0.1);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 8px;
+}
+
+.card-name-block {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+}
+
+.card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #3A3D40;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.card-nav-sub {
+    font-size: 11px;
+    color: #9A9DA0;
+    font-family: monospace;
+}
+
+.card-code {
+    font-size: 13px;
+    color: #9A9DA0;
+    font-family: monospace;
+}
+
+.card-pct {
+    font-size: 24px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.card-details {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid rgba(143, 160, 179, 0.15);
+    padding-top: 10px;
+}
+
+.card-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card-label {
+    font-size: 11px;
+    color: #9A9DA0;
+    margin-bottom: 2px;
+}
+
+.card-value {
+    font-size: 14px;
+    font-weight: 500;
+    font-family: monospace;
+    color: #4A4E51;
+}
+
+.no-data-card {
+    text-align: center;
+    color: #9A9DA0;
+    padding: 40px 16px;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(143, 160, 179, 0.15);
+    border-radius: 12px;
+}
+
+/* 页脚 */
+footer {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+footer p {
+    font-size: 12px;
+    color: #9A9DA0;
+}
+
+/* === 响应式：默认显示/隐藏 === */
+.mobile-only {
+    display: none;
+}
+
+.pc-only {
+    display: table;
+}
+
+/* === 顶部导航栏 === */
+.top-nav {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(143, 160, 179, 0.18);
+    box-shadow: 0 1px 4px rgba(74, 78, 81, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-brand {
+    font-size: 18px;
+    font-weight: 600;
+    color: #3A3D40;
+    text-decoration: none;
+}
+
+.nav-links a {
+    font-size: 14px;
+    color: #7A7E82;
+    text-decoration: none;
+    margin-left: 20px;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: #8FA0B3;
+}
+
+/* === 认证页面 === */
+.auth-container {
+    max-width: 400px;
+    margin: 60px auto;
+}
+
+.auth-container h2 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: #3A3D40;
+}
+
+.auth-form {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(143, 160, 179, 0.18);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(74, 78, 81, 0.06);
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    color: #5E6266;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(143, 160, 179, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background: rgba(255, 255, 255, 0.7);
+    color: #4A4E51;
+}
+
+.form-group input::placeholder {
+    color: #B0B3B6;
+}
+
+.form-group input:focus {
+    border-color: #8FA0B3;
+    box-shadow: 0 0 8px rgba(143, 160, 179, 0.25);
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+    color: #7A7E82;
+}
+
+.auth-link a {
+    color: #8FA0B3;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.auth-link a:hover {
+    color: #6E8597;
+    text-decoration: underline;
+}
+
+/* === 按钮 === */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-primary {
+    background: #8FA0B3;
+    color: #fff;
+    border: 1px solid rgba(143, 160, 179, 0.3);
+    box-shadow: 0 2px 8px rgba(143, 160, 179, 0.25);
+}
+
+.btn-primary:hover {
+    background: #7E92A6;
+    box-shadow: 0 4px 16px rgba(143, 160, 179, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(163, 177, 138, 0.2);
+    color: #5E6266;
+    border: 1px solid rgba(163, 177, 138, 0.35);
+}
+
+.btn-secondary:hover {
+    background: rgba(163, 177, 138, 0.3);
+    color: #4A4E51;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* === CTA 区域 === */
+.cta-section {
+    text-align: center;
+    margin-top: 32px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(143, 160, 179, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(74, 78, 81, 0.05);
+}
+
+.cta-section p {
+    font-size: 15px;
+    color: #7A7E82;
+    margin-bottom: 16px;
+}
+
+.cta-section .btn {
+    margin: 0 6px;
+}
+
+/* === 添加基金栏 === */
+/* === 添加基金触发行（PC tfoot）=== */
+.add-fund-trigger-row td {
+    text-align: center;
+    padding: 10px 0;
+    font-size: 13px;
+    color: #B0B3B6;
+    border-top: 1px dashed rgba(143, 160, 179, 0.3);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+    user-select: none;
+}
+
+.add-fund-trigger-row:hover td {
+    color: #8FA0B3;
+    background: rgba(143, 160, 179, 0.04);
+}
+
+.add-fund-trigger-sep {
+    margin: 0 6px;
+    color: rgba(143, 160, 179, 0.5);
+}
+
+.add-fund-trigger-import {
+    color: #8FA0B3;
+    text-decoration: underline;
+    text-decoration-color: rgba(143, 160, 179, 0.4);
+    cursor: pointer;
+}
+
+.add-fund-trigger-import:hover {
+    color: #5E6266;
+}
+
+/* === 添加基金触发卡（移动端）=== */
+.add-fund-trigger-card {
+    margin-top: 10px;
+    padding: 14px;
+    text-align: center;
+    font-size: 13px;
+    color: #B0B3B6;
+    border: 1px dashed rgba(143, 160, 179, 0.35);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    user-select: none;
+}
+
+/* === 全局设置按钮 === */
+.btn-settings {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #8FA0B3;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+.btn-settings:hover {
+    color: #5E6266;
+    background: rgba(143, 160, 179, 0.12);
+}
+
+/* === 全局设置 Modal 内表单 === */
+.settings-section {
+    margin-bottom: 8px;
+}
+
+.settings-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8FA0B3;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #5E6266;
+}
+
+.settings-label {
+    width: 70px;
+    flex-shrink: 0;
+    font-size: 14px;
+    color: #5E6266;
+}
+
+.settings-input {
+    width: 80px;
+    padding: 6px 8px;
+    border: 1px solid rgba(143, 160, 179, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.7);
+    color: #4A4E51;
+    transition: border-color 0.2s;
+}
+
+.settings-input:focus {
+    border-color: #8FA0B3;
+}
+
+/* === 分组按钮 === */
+.btn-group {
+    background: none;
+    border: 1px solid rgba(163, 177, 138, 0.45);
+    color: #A3B18A;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 4px;
+}
+
+.btn-group:hover {
+    background: rgba(163, 177, 138, 0.12);
+    border-color: #A3B18A;
+}
+
+/* === 分组弹窗 === */
+.group-modal-content {
+    width: 360px;
+}
+
+.group-options-list {
+    margin-bottom: 16px;
+}
+
+.group-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #5E6266;
+    transition: background 0.15s;
+}
+
+.group-option:hover {
+    background: rgba(143, 160, 179, 0.1);
+}
+
+.group-option.active {
+    color: #3A3D40;
+    font-weight: 500;
+    background: rgba(163, 177, 138, 0.1);
+}
+
+.group-option-check {
+    font-size: 12px;
+    color: #A3B18A;
+    width: 16px;
+    text-align: center;
+}
+
+.group-create-row {
+    display: flex;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+.group-create-row input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid rgba(143, 160, 179, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.7);
+    color: #4A4E51;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.group-create-row input::placeholder {
+    color: #B0B3B6;
+}
+
+.group-create-row input:focus {
+    border-color: #8FA0B3;
+    box-shadow: 0 0 8px rgba(143, 160, 179, 0.25);
+}
+
+.group-create-row .btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+/* === 分组折叠箭头 === */
+.group-chevron {
+    cursor: pointer;
+    font-size: 12px;
+    color: #9A9DA0;
+    user-select: none;
+    margin-right: 4px;
+    transition: color 0.2s;
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+}
+
+.group-chevron:hover {
+    color: #5E6266;
+}
+
+/* === 表格分组头 === */
+.group-header {
+    cursor: default !important;
+}
+
+.group-header td {
+    background: rgba(143, 160, 179, 0.08);
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+.group-header .group-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #3A3D40;
+    cursor: pointer;
+}
+
+.group-header .group-name:hover {
+    color: #8FA0B3;
+}
+
+.group-header .group-count {
+    font-size: 12px;
+    color: #9A9DA0;
+    margin-left: 6px;
+}
+
+.group-header:hover {
+    background-color: transparent;
+}
+
+.ungrouped-header td,
+.ungrouped-header {
+    background: rgba(163, 177, 138, 0.06) !important;
+}
+
+.ungrouped-header .group-name {
+    color: #7A7E82;
+}
+
+.btn-group-action {
+    background: none;
+    border: 1px solid rgba(143, 160, 179, 0.35);
+    color: #8FA0B3;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.2s;
+}
+
+.btn-group-action:hover {
+    background: rgba(143, 160, 179, 0.12);
+    border-color: #8FA0B3;
+}
+
+.btn-group-del {
+    border-color: rgba(191, 123, 111, 0.35);
+    color: #BF7B6F;
+}
+
+.btn-group-del:hover {
+    background: rgba(191, 123, 111, 0.1);
+    border-color: #BF7B6F;
+}
+
+/* === 移动端分组头（卡片视图） === */
+.group-header-card {
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    background: rgba(143, 160, 179, 0.08);
+    border: 1px solid rgba(143, 160, 179, 0.15);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.group-header-card .group-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #3A3D40;
+    cursor: pointer;
+}
+
+.group-header-card .group-name:hover {
+    color: #8FA0B3;
+}
+
+.group-header-card .group-count {
+    font-size: 12px;
+    color: #9A9DA0;
+}
+
+.group-header-card.ungrouped-header {
+    background: rgba(163, 177, 138, 0.06);
+    border-color: rgba(163, 177, 138, 0.15);
+}
+
+.group-header-card.ungrouped-header .group-name {
+    color: #7A7E82;
+}
+
+/* === 删除按钮 === */
+.btn-delete {
+    background: none;
+    border: 1px solid rgba(191, 123, 111, 0.45);
+    color: #BF7B6F;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: rgba(191, 123, 111, 0.1);
+    border-color: #BF7B6F;
+}
+
+/* === 消息提示 === */
+.error-msg {
+    color: #BF7B6F;
+    font-size: 14px;
+    padding: 8px 0;
+}
+
+.success-msg {
+    color: #6B9E7A;
+    font-size: 14px;
+    padding: 8px 12px;
+    background: rgba(107, 158, 122, 0.1);
+    border: 1px solid rgba(107, 158, 122, 0.2);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.add-msg {
+    margin-top: 8px;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+/* === 策略按钮 === */
+.btn-strategy {
+    background: none;
+    border: 1px solid rgba(143, 160, 179, 0.45);
+    color: #8FA0B3;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 4px;
+}
+
+.btn-strategy:hover {
+    background: rgba(143, 160, 179, 0.12);
+    border-color: #8FA0B3;
+}
+
+.btn-strategy.active {
+    background: rgba(143, 160, 179, 0.2);
+    border-color: #8FA0B3;
+    color: #5E6266;
+}
+
+.btn-danger {
+    background: rgba(191, 123, 111, 0.12);
+    color: #BF7B6F;
+    border: 1px solid rgba(191, 123, 111, 0.35);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: rgba(191, 123, 111, 0.2);
+}
+
+.card-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+/* === 策略弹窗 === */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(74, 78, 81, 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #EDE8E0;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(143, 160, 179, 0.2);
+    border-radius: 16px;
+    width: 420px;
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(74, 78, 81, 0.12);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+.modal-header h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #3A3D40;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #9A9DA0;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: #4A4E51;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 12px 20px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.strategy-fund-info {
+    margin-bottom: 16px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #3A3D40;
+}
+
+.strategy-fund-info .fund-code {
+    margin-left: 8px;
+    font-size: 13px;
+    color: #9A9DA0;
+    font-family: monospace;
+}
+
+.strategy-info {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(143, 160, 179, 0.15);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+
+.strategy-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 14px;
+}
+
+.strategy-info-row span:first-child {
+    color: #7A7E82;
+}
+
+.strategy-info-row span:last-child {
+    font-weight: 500;
+    font-family: monospace;
+    color: #4A4E51;
+}
+
+.strategy-options {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+}
+
+.strategy-option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: #5E6266;
+    cursor: pointer;
+}
+
+/* 修复：确保 .strategy-option 在 .form-group 内也保持 inline-flex */
+.form-group .strategy-option {
+    display: inline-flex;
+    margin-bottom: 0;
+}
+
+.strategy-option input[type="radio"],
+.strategy-option input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+    accent-color: #8FA0B3;
+}
+
+/* === 策略行（每个 MA 周期一行） === */
+.strategy-row {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(143, 160, 179, 0.15);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+}
+
+.strategy-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.strategy-row-label {
+    font-weight: 600;
+    font-size: 15px;
+    color: #3A3D40;
+}
+
+.strategy-row-status {
+    font-size: 12px;
+    color: #9A9DA0;
+}
+
+.strategy-row-status.active {
+    color: #A3B18A;
+}
+
+.strategy-row-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.strategy-row-options {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.strategy-row-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.btn-strategy-save {
+    background: #8FA0B3;
+    color: #fff;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-strategy-save:hover {
+    background: #7E92A6;
+}
+
+.btn-strategy-del {
+    background: none;
+    border: 1px solid rgba(191, 123, 111, 0.45);
+    color: #BF7B6F;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-strategy-del:hover {
+    background: rgba(191, 123, 111, 0.1);
+}
+
+/* === 拖拽排序 === */
+#valuation-table tbody tr,
+.fund-card {
+    cursor: grab;
+}
+
+#valuation-table tbody tr.group-header,
+.group-header-card {
+    cursor: default;
+}
+
+#valuation-table tbody tr:active,
+.fund-card:active {
+    cursor: grabbing;
+}
+
+.drag-ghost {
+    opacity: 0.3;
+}
+
+.sortable-chosen {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(143, 160, 179, 0.3);
+    border-color: rgba(143, 160, 179, 0.4) !important;
+    z-index: 10;
+}
+
+#valuation-table tbody .sortable-chosen {
+    background: rgba(143, 160, 179, 0.12);
+}
+
+/* === 详情弹窗 === */
+.detail-modal-content {
+    width: 520px;
+}
+
+.detail-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.detail-pct {
+    font-size: 28px;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.detail-nav-info {
+    font-size: 14px;
+    color: #7A7E82;
+}
+
+.detail-nav-info span {
+    font-family: monospace;
+    font-weight: 500;
+    color: #4A4E51;
+}
+
+.chart-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.2);
+    margin-bottom: 12px;
+}
+
+.chart-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #7A7E82;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.chart-tab:hover {
+    color: #5E6266;
+}
+
+.chart-tab.active {
+    color: #8FA0B3;
+    border-bottom-color: #8FA0B3;
+    font-weight: 500;
+}
+
+.trend-toggle {
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #7A7E82;
+    background: transparent;
+    border: 1px solid rgba(143, 160, 179, 0.25);
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: auto;
+    align-self: center;
+    transition: all 0.2s;
+}
+
+.trend-toggle:hover {
+    color: #5E6266;
+    border-color: rgba(143, 160, 179, 0.4);
+}
+
+.trend-toggle.active {
+    color: #A3B18A;
+    border-color: #A3B18A;
+    background: rgba(163, 177, 138, 0.1);
+}
+
+.chart-container {
+    width: 100%;
+    height: 280px;
+    position: relative;
+}
+
+.chart-note {
+    font-size: 12px;
+    color: #9A9DA0;
+    text-align: center;
+    margin-top: 4px;
+}
+
+.chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #9A9DA0;
+    font-size: 14px;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+.detail-actions .btn {
+    flex: 1;
+    text-align: center;
+}
+
+/* 嵌套弹窗层级提升 */
+#strategy-modal,
+#group-modal {
+    z-index: 1100;
+}
+
+/* === 文档页 === */
+.docs-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.docs-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 72px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(143, 160, 179, 0.18);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 12px rgba(74, 78, 81, 0.06);
+}
+
+.docs-sidebar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #3A3D40;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+.docs-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.docs-nav-item {
+    display: block;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #7A7E82;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.docs-nav-item:hover {
+    color: #5E6266;
+    background: rgba(143, 160, 179, 0.1);
+}
+
+.docs-nav-item.active {
+    color: #3A3D40;
+    font-weight: 500;
+    background: rgba(143, 160, 179, 0.15);
+}
+
+.docs-mobile-tabs {
+    display: none;
+}
+
+.docs-content {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(143, 160, 179, 0.18);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(74, 78, 81, 0.06);
+}
+
+.docs-content h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #3A3D40;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid rgba(143, 160, 179, 0.2);
+}
+
+.docs-content h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #3A3D40;
+    margin-top: 28px;
+    margin-bottom: 12px;
+}
+
+.docs-content h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #5E6266;
+    margin-top: 20px;
+    margin-bottom: 8px;
+}
+
+.docs-content p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #4A4E51;
+    margin-bottom: 12px;
+}
+
+.docs-content ul,
+.docs-content ol {
+    margin: 8px 0 16px 20px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #4A4E51;
+}
+
+.docs-content li {
+    margin-bottom: 6px;
+}
+
+.docs-content blockquote {
+    margin: 16px 0;
+    padding: 12px 16px;
+    background: rgba(143, 160, 179, 0.08);
+    border-left: 3px solid #8FA0B3;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #5E6266;
+}
+
+.docs-content code {
+    background: rgba(143, 160, 179, 0.12);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: monospace;
+    color: #5E6266;
+}
+
+.docs-content strong {
+    color: #3A3D40;
+}
+
+.docs-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+.docs-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9A9DA0;
+    font-size: 15px;
+}
+
+/* === 响应式 === */
+@media (max-width: 768px) {
+    .container {
+        padding: 12px;
+    }
+
+    header h1 {
+        font-size: 20px;
+    }
+
+    header {
+        margin-bottom: 16px;
+    }
+
+    /* 手机端隐藏表格，显示卡片 */
+    .pc-only {
+        display: none;
+    }
+
+    .mobile-only {
+        display: block;
+    }
+
+    .nav-inner {
+        padding: 0 12px;
+    }
+
+    .nav-links a {
+        margin-left: 12px;
+        font-size: 13px;
+    }
+
+    .auth-container {
+        margin: 30px auto;
+        padding: 0 12px;
+    }
+
+    .add-fund-trigger-card:hover {
+        color: #8FA0B3;
+        border-color: rgba(143, 160, 179, 0.6);
+        background: rgba(143, 160, 179, 0.04);
+    }
+
+    .group-modal-content {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        height: auto;
+        max-height: 80vh;
+    }
+
+    .cta-section .btn {
+        display: block;
+        margin: 8px auto;
+        width: 80%;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+
+    .strategy-row-body {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .strategy-row-actions {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .btn-strategy-save,
+    .btn-strategy-del {
+        flex: 1;
+    }
+
+    .detail-modal-content {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .chart-container {
+        height: 220px;
+    }
+
+    .detail-actions {
+        flex-wrap: wrap;
+    }
+
+    /* === 移动端基金卡片优化 === */
+    .fund-card {
+        padding: 12px 14px;
+        margin-bottom: 10px;
+    }
+
+    .card-header {
+        margin-bottom: 8px;
+        gap: 6px;
+    }
+
+    .card-name {
+        font-size: 14px;
+        gap: 3px;
+    }
+
+    .card-pct {
+        font-size: 18px;
+    }
+
+    .card-nav-sub {
+        font-size: 10px;
+    }
+
+    .card-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+        padding-top: 8px;
+    }
+
+    .card-item {
+        align-items: flex-start;
+    }
+
+    .card-label {
+        font-size: 10px;
+        margin-bottom: 1px;
+    }
+
+    .card-value {
+        font-size: 13px;
+    }
+
+    .card-return .return-amount {
+        font-size: 13px;
+    }
+
+    .card-return .return-rate {
+        font-size: 10px;
+    }
+
+    .holding-badge {
+        font-size: 8px;
+        padding: 0px 3px;
+        margin-right: 2px;
+    }
+
+    .fund-code-tag {
+        font-size: 10px;
+        padding: 0px 4px;
+    }
+
+    .fund-type-tag {
+        font-size: 10px;
+    }
+
+    .card-holding-val {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .holding-amount-wrap {
+        white-space: normal;
+    }
+
+    /* 文档页移动端 */
+    .docs-layout {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .docs-sidebar {
+        display: none;
+    }
+
+    .docs-mobile-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .docs-mobile-tab {
+        flex-shrink: 0;
+        padding: 8px 16px;
+        font-size: 13px;
+        color: #7A7E82;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(143, 160, 179, 0.18);
+        border-radius: 20px;
+        transition: all 0.2s;
+    }
+
+    .docs-mobile-tab.active {
+        color: #3A3D40;
+        font-weight: 500;
+        background: rgba(143, 160, 179, 0.2);
+        border-color: rgba(143, 160, 179, 0.35);
+    }
+
+    .docs-content {
+        padding: 20px 16px;
+    }
+
+    .docs-content h2 {
+        font-size: 19px;
+    }
+}
+
+/* === 大盘指数栏 === */
+.index-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.index-card {
+    flex: 1;
+    min-width: 120px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(143, 160, 179, 0.2);
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+    transition: box-shadow 0.2s, transform 0.15s;
+    user-select: none;
+}
+
+.index-card:hover {
+    box-shadow: 0 4px 16px rgba(143, 160, 179, 0.2);
+    transform: translateY(-2px);
+}
+
+.index-name {
+    font-size: 13px;
+    color: #7A7E82;
+    margin-bottom: 6px;
+}
+
+.index-value {
+    font-size: 20px;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Fira Mono', monospace;
+    color: #4A4E51;
+    margin-bottom: 3px;
+}
+
+.index-pct {
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Fira Mono', monospace;
+    color: #9A9DA0;
+}
+
+.index-value.rise, .index-pct.rise { color: #C85A5A; }
+.index-value.drop, .index-pct.drop { color: #5A9E6E; }
+
+@media (max-width: 768px) {
+    .index-card {
+        flex: calc(50% - 6px);
+        max-width: calc(50% - 6px);
+    }
+}
+
+/* === 行业涨跌排行 === */
+/* --- 首页并列行布局 --- */
+.home-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+.home-col {
+    flex: 1;
+    min-width: 0;
+}
+
+.sector-ranking {
+    display: flex;
+    gap: 16px;
+}
+
+.sector-col {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(143, 160, 179, 0.2);
+    border-radius: 12px;
+    padding: 16px 18px;
+    backdrop-filter: blur(4px);
+}
+
+.sector-col-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+.sector-col-title.rise { color: #C85A5A; }
+.sector-col-title.drop { color: #5A9E6E; }
+
+.sector-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.08);
+}
+
+.sector-item:last-child { border-bottom: none; }
+
+.sector-name {
+    flex: 0 0 72px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4A4E51;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sector-pct {
+    flex: 0 0 62px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Fira Mono', monospace;
+    text-align: right;
+    color: #9A9DA0;
+}
+
+.sector-pct.rise { color: #C85A5A; }
+.sector-pct.drop { color: #5A9E6E; }
+
+.sector-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: rgba(143, 160, 179, 0.12);
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 40px;
+}
+
+.sector-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+    background: #9A9DA0;
+}
+
+.sector-bar-fill.rise { background: rgba(200, 90, 90, 0.5); }
+.sector-bar-fill.drop { background: rgba(90, 158, 110, 0.5); }
+
+.sector-ratio {
+    flex: 0 0 42px;
+    font-size: 11px;
+    color: #9A9DA0;
+    text-align: right;
+}
+
+/* --- 资金流向条目 --- */
+.flow-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.08);
+    font-size: 13px;
+}
+.flow-item:last-child { border-bottom: none; }
+.flow-name {
+    flex: 1 1 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #000;
+}
+.flow-amount {
+    flex: 0 0 80px;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.flow-pct {
+    flex: 0 0 60px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.flow-amount.rise, .flow-pct.rise { color: #C85A5A; }
+.flow-amount.drop, .flow-pct.drop { color: #5A9E6E; }
+
+/* --- 行业热力图 --- */
+.heatmap-section {
+    background: #1a1a1a;
+    border: 1px solid rgba(143, 160, 179, 0.2);
+    border-radius: 12px;
+    padding: 12px 12px 8px;
+    margin-bottom: 24px;
+}
+.heatmap-section .section-title {
+    color: #ccc;
+    border-bottom-color: rgba(255,255,255,0.1);
+}
+#heatmap-container {
+    width: 100%;
+    height: 560px;
+}
+
+/* --- 热门概念词云 --- */
+.wordcloud-section {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(143, 160, 179, 0.2);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+}
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4A4A4A;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.15);
+}
+#wordcloud-container {
+    width: 100%;
+    height: 280px;
+}
+
+@media (max-width: 768px) {
+    .home-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .sector-ranking {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .sector-name { flex: 0 0 60px; }
+    .sector-pct { flex: 0 0 55px; }
+    .flow-amount { flex: 0 0 70px; }
+    .flow-pct { flex: 0 0 55px; }
+    #wordcloud-container { height: 220px; }
+}
+
+/* === 批量导入 Modal === */
+.import-modal-content {
+    max-width: 700px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.import-upload-area {
+    border: 2px dashed rgba(143, 160, 179, 0.4);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.import-upload-area:hover {
+    border-color: #8FA0B3;
+    background: rgba(143, 160, 179, 0.05);
+}
+
+/* === 导入预览表格 === */
+.import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.import-preview-table th,
+.import-preview-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(143, 160, 179, 0.15);
+    text-align: left;
+}
+
+.import-preview-table thead th {
+    color: #7A7E82;
+    font-weight: 500;
+    background: rgba(143, 160, 179, 0.08);
+    white-space: nowrap;
+}
+
+.import-preview-table tr.needs-code {
+    background: rgba(191, 123, 111, 0.06);
+}
+
+.import-code-input {
+    font-family: monospace;
+    background: transparent;
+    border: 1px solid rgba(143, 160, 179, 0.3);
+    border-radius: 4px;
+    padding: 4px 8px;
+    width: 80px;
+    font-size: 13px;
+    color: #4A4E51;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.import-code-input:focus {
+    border-color: #8FA0B3;
+}
+
+.import-code-input.auto-matched {
+    background: rgba(143, 160, 179, 0.1);
+    border-color: rgba(143, 160, 179, 0.5);
+}
+
+.required-input {
+    border-color: #BF7B6F !important;
+    background: rgba(191, 123, 111, 0.08) !important;
+}
+
+.import-code-input.suggested-input {
+    border-color: #C89A3A !important;
+    background: rgba(200, 154, 58, 0.08) !important;
+}
+
+.suggest-hint {
+    font-size: 11px;
+    color: #C89A3A;
+    margin-top: 2px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: default;
+}
+
+/* === 基金代码小标签 === */
+.fund-code-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-family: monospace;
+    color: #8FA0B3;
+    background: rgba(143, 160, 179, 0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
+/* === 净值小字（表格名称列） === */
+.fund-name-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.nav-sub {
+    font-size: 11px;
+    color: #9A9DA0;
+    font-family: monospace;
+    margin-top: 2px;
+    display: block;
+}
+
+/* === 收益/率两行显示 === */
+.return-amount {
+    display: block;
+    font-family: monospace;
+    font-weight: 500;
+}
+.return-rate {
+    display: block;
+    font-size: 11px;
+    font-family: monospace;
+    color: #9A9DA0;
+    margin-top: 1px;
+}
+.return-amount.rise { color: #BF7B6F; }
+.return-amount.drop { color: #6B9E7A; }
+.no-holding { color: #C0C4C8; }
+
+/* === 卡片收益格 === */
+.card-return { line-height: 1; }
+
+/* === 表格新列宽 === */
+.col-time    { white-space: nowrap; font-size: 12px; color: #9A9DA0; }
+.col-holding { font-family: monospace; font-weight: 500; }
+.col-return  { min-width: 80px; }
+
+/* === 持仓更新徽章 === */
+.holding-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-family: sans-serif;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 3px;
+    line-height: 1.5;
+    margin-right: 4px;
+    vertical-align: middle;
+    letter-spacing: 0.3px;
+}
+.badge-stale {
+    background: rgba(160,164,168,0.2);
+    color: #9A9DA0;
+    border: 1px solid rgba(160,164,168,0.3);
+}
+.badge-fresh {
+    background: rgba(210,140,60,0.15);
+    color: #C07828;
+    border: 1px solid rgba(210,140,60,0.3);
+}
+.holding-amount-wrap { white-space: nowrap; }
+
+/* === 持仓填充表单 === */
+.holding-form { display: flex; flex-direction: column; gap: 10px; }
+.holding-form-row { display: flex; flex-direction: column; gap: 4px; }
+.holding-form-row label { font-size: 12px; color: #7A7E82; }
+.holding-form-row input {
+    padding: 7px 10px;
+    border: 1px solid rgba(143,160,179,0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    background: rgba(255,255,255,0.7);
+    color: #3A3D40;
+}
+.holding-form-hint { font-size: 11px; color: #9A9DA0; margin: 0; line-height: 1.5; }
+
+/* === 持仓小标签（兼容旧代码） === */
+.holding-tag {
+    font-size: 11px;
+    color: #7A7E82;
+    display: block;
+    margin-top: 2px;
+    font-weight: 400;
+    font-family: monospace;
+}
+
+/* === 持仓汇总面板 === */
+.portfolio-summary {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(143, 160, 179, 0.18);
+    border-radius: 14px;
+    padding: 18px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(74, 78, 81, 0.05);
+}
+
+.ps-main {
+    flex: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ps-main-value {
+    font-size: 26px;
+    font-weight: 700;
+    font-family: monospace;
+    color: #3A3D40;
+    letter-spacing: -0.5px;
+}
+
+.ps-divider {
+    width: 1px;
+    height: 44px;
+    background: rgba(143, 160, 179, 0.2);
+    margin: 0 24px;
+    flex-shrink: 0;
+}
+
+.ps-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.ps-label {
+    font-size: 11px;
+    color: #9A9DA0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ps-value {
+    font-size: 17px;
+    font-weight: 600;
+    font-family: monospace;
+    color: #4A4E51;
+}
+
+.ps-rate {
+    font-size: 12px;
+    font-family: monospace;
+    color: #9A9DA0;
+}
+
+.ps-value.rise, .ps-rate.rise { color: #BF7B6F; }
+.ps-value.drop, .ps-rate.drop { color: #6B9E7A; }
+
+/* === 导入步骤底部按钮 === */
+.import-step-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(143, 160, 179, 0.15);
+}
+
+@media (max-width: 768px) {
+    .import-modal-content {
+        max-width: 100%;
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 0;
+    }
+
+    .import-step-footer {
+        flex-direction: column;
+    }
+
+    .import-step-footer .btn {
+        width: 100%;
+    }
+
+    .portfolio-summary {
+        flex-wrap: wrap;
+        padding: 12px 14px;
+        gap: 0;
+    }
+
+    .ps-main {
+        flex: 1 1 100%;
+        margin-bottom: 10px;
+    }
+
+    .ps-main-value {
+        font-size: 20px;
+    }
+
+    .ps-label {
+        font-size: 10px;
+    }
+
+    .ps-divider {
+        display: none;
+    }
+
+    .ps-block {
+        flex: 1 1 40%;
+    }
+
+    .ps-value {
+        font-size: 15px;
+    }
+
+    .ps-rate {
+        font-size: 11px;
+    }
+
+    .ps-block + .ps-block {
+        border-left: 1px solid rgba(143, 160, 179, 0.2);
+        padding-left: 14px;
+        margin-left: 4px;
+    }
+
+    /* 指数卡片移动端 */
+    .index-card {
+        padding: 10px 12px;
+    }
+
+    .index-name {
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+    .index-value {
+        font-size: 16px;
+        margin-bottom: 2px;
+    }
+
+    .index-pct {
+        font-size: 12px;
+    }
+}
+
+/* === 基金代码 Autocomplete 下拉 === */
+.fund-autocomplete-dropdown {
+    background: rgba(237, 232, 224, 0.97);
+    border: 1px solid rgba(143, 160, 179, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(74, 78, 81, 0.12);
+    min-width: 280px;
+    max-height: 240px;
+    overflow-y: auto;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: fixed;
+    z-index: 9999;
+}
+
+.fund-autocomplete-item {
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+    align-items: baseline;
+}
+
+.fund-autocomplete-item:hover,
+.fund-autocomplete-item.fac-active {
+    background: rgba(143, 160, 179, 0.12);
+}
+
+.fac-code {
+    font-family: monospace;
+    font-weight: 600;
+    color: #4A4E51;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.fac-name {
+    color: #5E6266;
+    font-size: 13px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fac-type {
+    color: #9A9DA0;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.fac-empty {
+    padding: 10px 12px;
+    color: #9A9DA0;
+    font-size: 13px;
+    text-align: center;
+}

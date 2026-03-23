@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}策略入门 - 投资帮帮{% endblock %}
+
+{% block content %}
+<div class="docs-layout">
+  <aside class="docs-sidebar">
+    <div class="docs-sidebar-title">用户手册</div>
+    <nav class="docs-nav">
+      {% for s, name in catalog %}
+      <a href="/docs/{{ s }}" class="docs-nav-item {{ 'active' if slug == s }}">{{ name }}</a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <!-- 移动端 tab 导航 -->
+  <div class="docs-mobile-tabs">
+    {% for s, name in catalog %}
+    <a href="/docs/{{ s }}" class="docs-mobile-tab {{ 'active' if slug == s }}">{{ name }}</a>
+    {% endfor %}
+  </div>
+
+  <main class="docs-content">
+    {{ content | safe }}
+  </main>
+</div>
+{% endblock %}

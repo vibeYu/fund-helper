@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  fund-helper:
+    build: .
+    container_name: fund-helper
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    environment:
+      - TZ=Asia/Shanghai
+    command: python main.py --schedule --web
